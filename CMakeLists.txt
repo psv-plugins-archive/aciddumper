@@ -32,6 +32,22 @@ add_link_options(
   --entry=module_start
 )
 
+set(LOG_ENABLE "1" CACHE STRING "Enable logging")
+set(FILELOG_ENABLE "0" CACHE STRING "Enable file logging")
+set(LOG_LEVEL "SCE_DBG_LOG_LEVEL_INFO" CACHE STRING "Log verbosity level")
+
+add_compile_definitions(
+  SCE_DBG_LOGGING_ENABLED=${LOG_ENABLE}
+  SCE_DBG_FILELOG_ENABLED=${FILELOG_ENABLE}
+  SCE_DBG_MINIMUM_LOG_LEVEL=${LOG_LEVEL}
+)
+
+if(FILELOG_ENABLE)
+  add_compile_definitions(SCE_DBG_LOG_PREFIX="[ACIDDumper] ")
+else()
+  add_compile_definitions(SCE_DBG_LOG_PREFIX="\\033[0;35m[ACIDDumper]\\033[0m ")
+endif()
+
 # Build self
 
 set(ELF "aciddumper.elf")
@@ -43,8 +59,14 @@ add_executable("${ELF}"
 )
 
 target_link_libraries("${ELF}"
+  psp2dbgForKernel
+
   taihenForKernel_stub
+
   SceDebugForDriver_stub
+  SceIofilemgrForDriver_stub
+  SceSysclibForDriver_stub
+  SceThreadmgrForDriver_stub
 )
 
 dolce_create_self("${SELF}"
