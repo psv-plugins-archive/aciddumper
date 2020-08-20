@@ -1,6 +1,6 @@
 /*
-Addcont ID Dumper
-Copyright (C) 2020 浅倉麗子
+This file is part of Addcont ID Dumper
+Copyright © 2020 浅倉麗子
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,12 +15,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// Author: 浅倉麗子
-
 #include <string.h>
+
+#include <psp2kern/appmgr.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/kernel/sysmem.h>
+
 #include <taihen.h>
+
+#define USED __attribute__ ((used))
+#define UNUSED __attribute__ ((unused))
 
 #define GLZ(x) do {\
 	if ((x) < 0) { goto fail; }\
@@ -34,18 +38,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 static SceUID hook_id[N_HOOK];
 static tai_hook_ref_t hook_ref[N_HOOK];
 
-typedef struct {
-	int size;
-	char addcont_id[0x14];
-	char mount_point[0x10];
-} drm_open_param_t;
-
-static int sceAppMgrDrmOpen_hook(drm_open_param_t *r0, int r1) {
-	drm_open_param_t param;
-	ksceKernelMemcpyUserToKernel(&param, (uintptr_t)r0, sizeof(drm_open_param_t));
-	ksceDebugPrintf("[ACIDDumper] %s%s\n", param.mount_point, param.addcont_id);
-
-	return TAI_CONTINUE(int, hook_ref[0], r0, r1);
+static SceInt32 sceAppMgrDrmOpen_hook(const SceAppMgrDrmAddcontParam *pParam) {
+	ksceDebugPrintf("%s%s\n", pParam->mountPoint.data, pParam->dirName.data);
+	return TAI_NEXT(sceAppMgrDrmOpen_hook, hook_ref[0], pParam);
 }
 
 static void startup(void) {
@@ -59,10 +54,9 @@ static void cleanup(void) {
 	}
 }
 
-int _start() __attribute__ ((weak, alias("module_start")));
-int module_start(SceSize argc, const void *argv) { (void)argc; (void)argv;
+USED int module_start(UNUSED SceSize args, UNUSED const void *argp) {
 	startup();
-	GLZ(HOOK_EXPORT(0, "SceAppMgr", 0x8AF17416, 0xAA5B3A37, sceAppMgrDrmOpen));
+	GLZ(HOOK_EXPORT(0, "SceAppMgr", 0xDCE180F8, 0xEA75D157, sceAppMgrDrmOpen));
 	return SCE_KERNEL_START_SUCCESS;
 
 fail:
@@ -70,7 +64,7 @@ fail:
 	return SCE_KERNEL_START_FAILED;
 }
 
-int module_stop(SceSize argc, const void *argv) { (void)argc; (void)argv;
+USED int module_stop(UNUSED SceSize args, UNUSED const void *argp) {
 	cleanup();
 	return SCE_KERNEL_STOP_SUCCESS;
 }
