@@ -70,14 +70,14 @@ static SceInt32 sceAppMgrDrmOpen_hook(const SceAppMgrDrmAddcontParam *pParam) {
 }
 
 static void startup(void) {
-	SCE_DBG_FILELOG_INIT("ux0:/aciddumper.log");
+	SCE_DBG_FILE_LOGGING_INIT("ux0:/aciddumper.log");
 	memset(hook_id, 0xFF, sizeof(hook_id));
 	memset(hook_ref, 0xFF, sizeof(hook_ref));
 }
 
 static void cleanup(void) {
 	for (int i = 0; i < N_HOOK; i++) { UNHOOK(i); }
-	SCE_DBG_FILELOG_TERM();
+	SCE_DBG_FILE_LOGGING_TERM();
 }
 
 USED int module_start(UNUSED SceSize args, UNUSED const void *argp) {
