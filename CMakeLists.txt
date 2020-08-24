@@ -52,10 +52,10 @@ endif()
 
 set(ELF "aciddumper.elf")
 set(SELF "aciddumper.skprx")
-set(VELF_CFG "exports.yml")
+set(MODULE_INFO "aciddumper.yml")
 
 add_executable("${ELF}"
-  main.c
+  aciddumper.c
 )
 
 target_link_libraries("${ELF}"
@@ -71,5 +71,5 @@ target_link_libraries("${ELF}"
 
 dolce_create_self("${SELF}"
   "${ELF}"
-  CONFIG "${VELF_CFG}"
+  CONFIG "${MODULE_INFO}"
 )
